@@ -6,16 +6,21 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SmartSchool.WebAPI.Data;
 
 namespace SmartSchool.WebAPI
 {
     public class Startup
     {
+        /*
+        Quando se inicializa uma startup ele injeta essa configuração (Iconfigutation) para podermos acessar o appsettings.json
+        */
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -26,7 +31,11 @@ namespace SmartSchool.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            //Explicar para outras services (Controller e Swang) quem sera o banco de dados
+            services.AddDbContext<SmartContext>(
+                context => context.UseSqlite(Configuration.GetConnectionString("Default"))//Tem que ir em appsettings.json e criar a configuração
+            );
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
