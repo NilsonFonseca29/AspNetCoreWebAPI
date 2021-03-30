@@ -36,7 +36,16 @@ namespace SmartSchool.WebAPI
                 context => context.UseSqlite(Configuration.GetConnectionString("Default"))//Tem que ir em appsettings.json e criar a configuração
             );
             
-            services.AddControllers();
+            //services.AddSingleton<IRepository, Repository>(); = Todas as requisições num mesma classe
+
+            //services.AddTransient<IRepository,Repository>(); = 1 classe 1 requisição
+
+            services.AddScoped<IRepository, Repository>(); //Requisição no mesmo repositório renova a instancia de classe, em outros repositório cria outra instancias de classe
+
+            services.AddControllers()
+                    //.AddNewtonsoftJson ignora looping infinito do disciplina, aluno, professor, disciplina, aluno, professor)
+                    .AddNewtonsoftJson(
+                        opt =>opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SmartSchool.WebAPI", Version = "v1" });

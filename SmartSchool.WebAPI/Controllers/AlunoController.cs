@@ -12,82 +12,83 @@ namespace SmartSchool.WebAPI.Controllers
     public class AlunoController : ControllerBase
     {
         private readonly SmartContext _context;
+        public readonly IRepository _repo;
 
         // Aqui dentro da controller aluno eu referencio a tabela la no contexto, pois nao preciso mais criar aqui.. ele fica ouvindo tudo que tem no contexto(banco de dados)
-        public AlunoController(SmartContext context)
+        public AlunoController(IRepository repo)
         {
+            _repo = repo;
             // o uso do underline significa que quando instanciar uma controler AlunoController vai passar como parametro o contexto (SmartContext - services.AddDbContext)
-            _context = context;
         }
 
         //rota normal api/aluno
-        [HttpGet] 
+        [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_context.Alunos);
+           var result = _repo.GetAllAlunos(true);
+           return Ok(result);
         }
 
         //rota pesquisada por id api/aluno/id
-        [HttpGet("byId")]
-        
-           public IActionResult GetById(int id)
+        [HttpGet("byId/{id}")]
+
+        public IActionResult GetById(int id)
         {
-            var aluno = _context.Alunos.FirstOrDefault(a=>a.Id == id);
-            if(aluno ==null) return BadRequest("O alune não foi encontrado!");
+            var aluno = _repo.GetAlunoById(id, false);
+            if (aluno == null) return BadRequest("O alune não foi encontrado!");
             return Ok(aluno);
         }
 
-        //rota pesquisada por nome api/aluno/nome
-        [HttpGet("ByName")]
-        
-        /*
-            QueryString, tem que passar a variavel=nomeDaVariavel & variavel=nomeDaVariavel
-        */
-           public IActionResult GetByName(string nome, string Sobrenome)
+        [HttpPost]
+        public IActionResult Post(Aluno aluno)
         {
-            var aluno = _context.Alunos.FirstOrDefault(a=>
-            a.Nome.Contains(nome) && a.Sobrenome.Contains(Sobrenome));
-            if(aluno ==null) return BadRequest("O aluno não foi encontrado!");
-            return Ok(aluno);
-        }
-
-    
-         [HttpPost]
-           public IActionResult Post(Aluno aluno)
-        {
-            _context.Add(aluno);
-            _context.SaveChanges();
-            return Ok(aluno);
+            _repo.Add(aluno);
+            if(_repo.SaveChanges()){
+                return Ok(aluno);
+            }
+            return BadRequest("Aluno não cadastrado");
+            //Antes de criar o Repositpory: _context.Add(aluno);
+            //Antes de criar o Repositpory: _context.SaveChanges();     
         }
 
         [HttpPut("{id}")]
-           public IActionResult Put(int id, Aluno aluno)
+        public IActionResult Put(int id, Aluno aluno)
         {
-            var alu = _context.Alunos.AsNoTracking().FirstOrDefault(a=>a.Id == id);
-             if(alu == null) return BadRequest("Aluno nao encontrado");
-            _context.Update(aluno);
-            _context.SaveChanges();
-            return Ok(aluno);
+
+            var alu = _repo.GetAlunoById(id);
+            if(_repo.SaveChanges()){
+                return Ok(aluno);
+            }
+            return BadRequest("Aluno não cadastrado");
+            //Antes de criar o Repositpory: _context.Update(aluno);
+            //Antes de criar o Repositpory: _context.SaveChanges();
         }
 
         [HttpPatch("{id}")]
-           public IActionResult Patch(int id, Aluno aluno)
+        public IActionResult Patch(int id, Aluno aluno)
         {
-            var alu = _context.Alunos.AsNoTracking().FirstOrDefault(a=>a.Id == id);
-             if(alu == null) return BadRequest("Aluno nao encontrado");
-            _context.Update(aluno);
-            _context.SaveChanges();
-            return Ok(aluno);
+            var alu = _repo.GetAlunoById(id);
+            if(_repo.SaveChanges()){
+                return Ok(alu);
+            }
+            return BadRequest("Aluno não cadastrado");
+            //Antes de criar o Repositpory: _context.Update(aluno);
+            //Antes de criar o Repositpory: _context.SaveChanges();
         }
 
         [HttpDelete("{id}")]
-           public IActionResult Delete(int id)
+        public IActionResult Delete(int id)
         {
-             var aluno = _context.Alunos.FirstOrDefault(a=>a.Id == id);
-             if(aluno == null) return BadRequest("Aluno nao encontrado");
-            _context.Remove(aluno);
-            _context.SaveChanges();
-            return Ok();
+            var alu = _repo.GetAlunoById(id);
+            if (alu == null) return BadRequest("Aluno nao encontrado");
+            
+            _repo.Delete(alu);
+            if(_repo.SaveChanges()){
+                return Ok(alu);
+            }
+            return BadRequest("Aluno não cadastrado");
+            //Antes de criar o Repositpory: _context.Delete(aluno);
+            //Antes de criar o Repositpory: _context.SaveChanges();
         }
     }
 }
