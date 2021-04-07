@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
+using SmartSchool.WebAPI.Dtos;
 using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
@@ -13,10 +15,12 @@ namespace SmartSchool.WebAPI.Controllers
     {
         private readonly SmartContext _context;
         public readonly IRepository _repo;
+        private readonly IMapper _mapper;
 
         // Aqui dentro da controller aluno eu referencio a tabela la no contexto, pois nao preciso mais criar aqui.. ele fica ouvindo tudo que tem no contexto(banco de dados)
-        public AlunoController(IRepository repo)
+        public AlunoController(IRepository repo, IMapper mapper)
         {
+            _mapper = mapper;
             _repo = repo;
             // o uso do underline significa que quando instanciar uma controler AlunoController vai passar como parametro o contexto (SmartContext - services.AddDbContext)
         }
@@ -25,26 +29,31 @@ namespace SmartSchool.WebAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-           var result = _repo.GetAllAlunos(true);
-           return Ok(result);
+            var alunos = _repo.GetAllAlunos(true);
+            
+            return Ok(_mapper.Map<IEnumerable<AlunoDto>>(alunos));//Aqui mapeia o alunoController e alunoDto
         }
 
         //rota pesquisada por id api/aluno/id
-        [HttpGet("byId/{id}")]
+        [HttpGet("{id}")]
 
         public IActionResult GetById(int id)
         {
             var aluno = _repo.GetAlunoById(id, false);
             if (aluno == null) return BadRequest("O alune não foi encontrado!");
-            return Ok(aluno);
+
+            var alunoDto = _mapper.Map<AlunoDto>(aluno);
+            return Ok(alunoDto);
         }
 
         [HttpPost]
-        public IActionResult Post(Aluno aluno)
+        public IActionResult Post(AlunoDto model)
         {
+            var aluno = _mapper.Map<Aluno>(model);
             _repo.Add(aluno);
-            if(_repo.SaveChanges()){
-                return Ok(aluno);
+            if (_repo.SaveChanges())
+            {
+                return Created($"/api/aluno/{model.Id}", _mapper.Map<AlunoDto>(aluno));
             }
             return BadRequest("Aluno não cadastrado");
             //Antes de criar o Repositpory: _context.Add(aluno);
@@ -52,26 +61,36 @@ namespace SmartSchool.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, Aluno aluno)
+        public IActionResult Put(int id, AlunoDto model)
         {
 
-            var alu = _repo.GetAlunoById(id);
-            if(_repo.SaveChanges()){
-                return Ok(aluno);
+            var aluno = _repo.GetAlunoById(id);
+            if(aluno ==null) return BadRequest("Aluno não encontrado");
+
+            _mapper.Map(model, aluno);
+
+            if (_repo.SaveChanges())
+            {
+                return Created($"/api/aluno/{model.Id}", _mapper.Map<AlunoDto>(aluno));;
             }
-            return BadRequest("Aluno não cadastrado");
+            return BadRequest("Aluno não atualizado");
             //Antes de criar o Repositpory: _context.Update(aluno);
             //Antes de criar o Repositpory: _context.SaveChanges();
         }
 
         [HttpPatch("{id}")]
-        public IActionResult Patch(int id, Aluno aluno)
+        public IActionResult Patch(int id, AlunoDto model)
         {
-            var alu = _repo.GetAlunoById(id);
-            if(_repo.SaveChanges()){
-                return Ok(alu);
+            var aluno = _repo.GetAlunoById(id);
+            if(aluno == null) return BadRequest("Aluno não encontrado");
+
+            _mapper.Map(model, aluno);
+
+            if (_repo.SaveChanges())
+            {
+                return Created($"/api/aluno/{model.Id}", _mapper.Map<AlunoDto>(aluno));
             }
-            return BadRequest("Aluno não cadastrado");
+            return BadRequest("Aluno não atualizado");
             //Antes de criar o Repositpory: _context.Update(aluno);
             //Antes de criar o Repositpory: _context.SaveChanges();
         }
@@ -79,14 +98,15 @@ namespace SmartSchool.WebAPI.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var alu = _repo.GetAlunoById(id);
-            if (alu == null) return BadRequest("Aluno nao encontrado");
-            
-            _repo.Delete(alu);
-            if(_repo.SaveChanges()){
-                return Ok(alu);
+            var aluno = _repo.GetAlunoById(id);
+            if (aluno == null) return BadRequest("Aluno nao encontrado");
+
+            _repo.Delete(aluno);
+            if (_repo.SaveChanges())
+            {
+                return Ok(aluno);
             }
-            return BadRequest("Aluno não cadastrado");
+            return BadRequest("Aluno não deletado");
             //Antes de criar o Repositpory: _context.Delete(aluno);
             //Antes de criar o Repositpory: _context.SaveChanges();
         }

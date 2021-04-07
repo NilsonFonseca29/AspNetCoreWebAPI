@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,6 +42,8 @@ namespace SmartSchool.WebAPI
             //services.AddTransient<IRepository,Repository>(); = 1 classe 1 requisição
 
             services.AddScoped<IRepository, Repository>(); //Requisição no mesmo repositório renova a instancia de classe, em outros repositório cria outra instancias de classe
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies()); // vai procurar dentro da dlls quem está herdando de profiles.. Fazer mapeamentos de dtos e dominios(models)
 
             services.AddControllers()
                     //.AddNewtonsoftJson ignora looping infinito do disciplina, aluno, professor, disciplina, aluno, professor)
