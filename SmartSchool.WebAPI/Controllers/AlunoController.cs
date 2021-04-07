@@ -34,6 +34,11 @@ namespace SmartSchool.WebAPI.Controllers
             return Ok(_mapper.Map<IEnumerable<AlunoDto>>(alunos));//Aqui mapeia o alunoController e alunoDto
         }
 
+        [HttpGet("getRegister")]
+        public IActionResult GetRegister(){
+            return Ok(new AlunoRegistrarDto());//Teste para ver se o RegisterAlunoDto está passando no Postman
+        }
+
         //rota pesquisada por id api/aluno/id
         [HttpGet("{id}")]
 
@@ -47,7 +52,7 @@ namespace SmartSchool.WebAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(AlunoDto model)
+        public IActionResult Post(AlunoRegistrarDto model)
         {
             var aluno = _mapper.Map<Aluno>(model);
             _repo.Add(aluno);
@@ -61,17 +66,18 @@ namespace SmartSchool.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, AlunoDto model)
+        public IActionResult Put(int id, AlunoRegistrarDto model)
         {
 
             var aluno = _repo.GetAlunoById(id);
-            if(aluno ==null) return BadRequest("Aluno não encontrado");
+            if(aluno == null) return BadRequest("Aluno não encontrado");
 
             _mapper.Map(model, aluno);
+            _repo.Update(aluno);
 
             if (_repo.SaveChanges())
             {
-                return Created($"/api/aluno/{model.Id}", _mapper.Map<AlunoDto>(aluno));;
+                return Created($"/api/aluno/{model.Id}", _mapper.Map<AlunoDto>(aluno));
             }
             return BadRequest("Aluno não atualizado");
             //Antes de criar o Repositpory: _context.Update(aluno);
@@ -79,7 +85,7 @@ namespace SmartSchool.WebAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        public IActionResult Patch(int id, AlunoDto model)
+        public IActionResult Patch(int id, AlunoRegistrarDto model)
         {
             var aluno = _repo.GetAlunoById(id);
             if(aluno == null) return BadRequest("Aluno não encontrado");
