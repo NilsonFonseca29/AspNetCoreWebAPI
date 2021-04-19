@@ -1,8 +1,9 @@
 using AutoMapper;
 using SmartSchool.WebAPI.v1.Dtos;
 using SmartSchool.WebAPI.Models;
+using SmartSchool.WebAPI.Helpers;
 
-namespace SmartSchool.WebAPI.Helpers
+namespace SmartSchool.WebAPI.v1.Profiles
 {
     public class SmartSchoolProfile : Profile
     {
@@ -11,7 +12,7 @@ namespace SmartSchool.WebAPI.Helpers
             CreateMap<Aluno, AlunoDto>()
                 .ForMember(
                     dest =>dest.Nome, //o Dto
-                    opt => opt.MapFrom(src => $"{src.Nome} {src.Sobrenome}")//pegando e mandando pro dto
+                    opt => opt.MapFrom(src => $"{src.Nome} {src.Sobrenome}")//pegando e mandando pro dt
                 )
                 .ForMember(
                     dest => dest.Idade,

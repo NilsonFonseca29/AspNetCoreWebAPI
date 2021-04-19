@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SmartSchool.WebAPI.Data;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace SmartSchool.WebAPI
 {
@@ -43,31 +44,73 @@ namespace SmartSchool.WebAPI
 
             services.AddScoped<IRepository, Repository>(); //Requisição no mesmo repositório renova a instancia de classe, em outros repositório cria outra instancias de classe
 
+            services.AddVersionedApiExplorer(option =>
+            {
+                option.GroupNameFormat = "'v'VVV";
+                option.SubstituteApiVersionInUrl = true;
+            })
+            
+            .AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1,0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+            });
+
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies()); // vai procurar dentro da dlls quem está herdando de profiles.. Fazer mapeamentos de dtos e dominios(models)
 
             services.AddControllers()
                     //.AddNewtonsoftJson ignora looping infinito do disciplina, aluno, professor, disciplina, aluno, professor)
                     .AddNewtonsoftJson(
                         opt =>opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            services.AddSwaggerGen(c =>
+
+            var apiProviderDescription = services.BuildServiceProvider()
+                .GetService<IApiVersionDescriptionProvider>();
+
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SmartSchool.WebAPI", Version = "v1" });
+                foreach (var description in apiProviderDescription.ApiVersionDescriptions){
+                    options.SwaggerDoc(
+                    description.GroupName,
+                     new Microsoft.OpenApi.Models.OpenApiInfo() 
+                    {
+                     Title = "SmartSchool WebAPI", 
+                     Version = description.ApiVersion .ToString() ,
+                     //TermsOfService = new Uri('http:') 
+                
+                    });
+                }
+                
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, 
+        IWebHostEnvironment env,
+        IApiVersionDescriptionProvider apiVersionDescriptionProvider)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartSchool.WebAPI v1"));
+    
             }
 
-            // app.UseHttpsRedirection();
-
+             // app.UseHttpsRedirection();
             app.UseRouting();
+
+            app.UseSwagger();
+                //Ui using interface
+                app.UseSwaggerUI(c => 
+                {
+                    foreach(var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                    {
+                        c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",description.GroupName.ToUpperInvariant());
+                    }
+
+                
+                c.RoutePrefix = "";
+                });
+           
 
             // app.UseAuthorization();
 

@@ -4,16 +4,17 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
-using SmartSchool.WebAPI.Dtos;
+using SmartSchool.WebAPI.v1.Dtos;
 using SmartSchool.WebAPI.Models;
 
-namespace SmartSchool.WebAPI.Controllers
+namespace SmartSchool.WebAPI.v1.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]// rota que a url caminhará para acessar a controller
+    [ApiVersion ("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]// rota que a url caminhará para acessar a controller
     public class AlunoController : ControllerBase
     {
-        private readonly SmartContext _context;
+        
         public readonly IRepository _repo;
         private readonly IMapper _mapper;
 
