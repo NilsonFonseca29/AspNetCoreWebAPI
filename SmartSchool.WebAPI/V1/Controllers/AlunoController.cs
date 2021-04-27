@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
 using SmartSchool.WebAPI.v1.Dtos;
 using SmartSchool.WebAPI.Models;
+using System.Threading.Tasks;
+using SmartSchool.WebAPI.Helpers;
 
 namespace SmartSchool.WebAPI.v1.Controllers
 {
@@ -28,11 +30,15 @@ namespace SmartSchool.WebAPI.v1.Controllers
 
         //rota normal api/aluno
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get([FromQuery]PageParams pageParams) //Task para ganho de performance e trabalhar com assincronos
         {
-            var alunos = _repo.GetAllAlunos(true);
+            var alunos = await _repo.GetAllAlunosAsync(pageParams, true);
+
+            var alunosResult = _mapper.Map<IEnumerable<AlunoDto>>(alunos);
+
+            Response.AddPagination(alunos.CurrentPage, alunos.PageSize, alunos.TotalCount, alunos.TotalPages);
             
-            return Ok(_mapper.Map<IEnumerable<AlunoDto>>(alunos));//Aqui mapeia o alunoController e alunoDto
+            return Ok(alunosResult);//Aqui mapeia o alunoController e alunoDto
         }
 
         [HttpGet("getRegister")]
