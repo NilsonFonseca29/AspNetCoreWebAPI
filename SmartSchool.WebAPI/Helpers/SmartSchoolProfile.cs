@@ -16,7 +16,7 @@ namespace SmartSchool.WebAPI.Helpers
                 .ForMember(
                     dest => dest.Idade,
                     opt => opt.MapFrom(src => src.DataNasc.GetCurrentAge())
-                ); //Toda vez que trabalhei com aluno, chamarei o AlunoDto para mostrar nas chamadas
+                ); //Toda vez que trabalhei  com aluno, chamarei o AlunoDto para mostrar nas chamadas
             CreateMap<AlunoDto, Aluno>();
             CreateMap<Aluno,AlunoRegistrarDto>().ReverseMap();
 
