@@ -10,7 +10,7 @@ describe('Service: Aluno', () => {
     });
   });
 
-  it('should ...', inject([AlunoService], (service: AlunoService) => {
+  xit('should ...', inject([AlunoService], (service: AlunoService) => {
     expect(service).toBeTruthy();
   }));
 });
